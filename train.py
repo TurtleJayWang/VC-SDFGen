@@ -52,16 +52,21 @@ class VoxelSDFTraining:
         if start_epoch > 0:
             self.load_model(start_epoch)
         
-        self.dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
+        dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
 
         for e in range(start_epoch, self.epochs):
             epoch_loss = 0
-            for i, (points, sdfs, index) in enumerate(self.dataset):
+            for i, (points, sdfs, index) in enumerate(dataloader):
                 points = points.to(self.device)
                 sdfs = sdfs.to(self.device)
 
+                real_batch_size = index.shape[0]
+
                 embedding_indices = index * (self.latent_grid_size + 1) ** 3
-                latent_codes = self.embeddings(embedding_indices).view(-1, self.latent_dim)
+                embedding_indices = embedding_indices.repeat(1, (self.latent_grid_size + 1) ** 3)
+                embedding_indices += torch.arange(0, (self.latent_grid_size + 1) ** 3).unsqueeze(0).repeat(real_batch_size, 1)
+                embedding_indices = embedding_indices.view(-1)
+                latent_codes = self.embeddings(embedding_indices)
                 latent_codes = latent_codes.to(self.device)
 
                 voxel_sdf = self.model(points, latent_codes)
