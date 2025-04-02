@@ -21,12 +21,12 @@ class VoxelSDF(nn.Module):
         self.latent_dim = latent_dim
 
     def forward(self, embeddings, points):
-        n_points = points.shape[0]
-        points = points.view(1, n_points, 1, 1, 3)
+        n_models, n_points_per_model = points.shape[0:2]
 
-        embeddings = self.embeddings(torch.arange((self.voxel_grid_size + 1) ** 3).long())
+        points = points.view(n_models, n_points_per_model, 1, 1, 3)
+
         embeddings = embeddings.view(
-            1, self.latent_dim,
+            n_models, self.latent_dim,
             self.voxel_grid_size + 1,
             self.voxel_grid_size + 1,
             self.voxel_grid_size + 1
@@ -38,7 +38,7 @@ class VoxelSDF(nn.Module):
             mode='bilinear',
             padding_mode='zeros',
             align_corners=True
-        ).view(n_points, self.latent_dim)
+        ).view(n_points_per_model, self.latent_dim)
         
         sdf = self.sdf_mlp(latent)
         return sdf
