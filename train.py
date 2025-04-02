@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from model.VoxelSDF import VoxelSDF
-from model.LatentCNF import LatentCNF
 
 from data.dataset import ShapeNetSDF
 
