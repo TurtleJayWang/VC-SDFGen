@@ -24,7 +24,6 @@ class VoxelSDF(nn.Module):
         n_models, n_points_per_model = points.shape[0:2]
 
         points = points.view(n_models, n_points_per_model, 1, 1, 3)
-        print(n_points_per_model)
 
         embeddings = embeddings.view(
             n_models, self.latent_dim,
