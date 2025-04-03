@@ -63,14 +63,17 @@ class VoxelSDFTraining:
                 real_batch_size = index.shape[0]
 
                 embedding_indices = index * (self.latent_grid_size + 1) ** 3
+                embedding_indices = embedding_indices.view(real_batch_size, -1)
                 embedding_indices = embedding_indices.repeat(1, (self.latent_grid_size + 1) ** 3)
                 embedding_indices += torch.arange(0, (self.latent_grid_size + 1) ** 3).unsqueeze(0).repeat(real_batch_size, 1)
                 embedding_indices = embedding_indices.view(-1)
                 latent_codes = self.embeddings(embedding_indices)
                 latent_codes = latent_codes.to(self.device)
 
-                voxel_sdf = self.model(points, latent_codes)
+                voxel_sdf = self.model(latent_codes, points)
 
+                voxel_sdf = voxel_sdf.view(real_batch_size, -1)
+                sdfs = sdfs.view(real_batch_size, -1)
                 loss = self.criterion(voxel_sdf, sdfs)
                 
                 self.optimizer.zero_grad()

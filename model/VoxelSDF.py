@@ -24,6 +24,7 @@ class VoxelSDF(nn.Module):
         n_models, n_points_per_model = points.shape[0:2]
 
         points = points.view(n_models, n_points_per_model, 1, 1, 3)
+        print(n_points_per_model)
 
         embeddings = embeddings.view(
             n_models, self.latent_dim,
@@ -38,13 +39,7 @@ class VoxelSDF(nn.Module):
             mode='bilinear',
             padding_mode='zeros',
             align_corners=True
-        ).view(n_points_per_model, self.latent_dim)
+        ).view(n_models, n_points_per_model, self.latent_dim)
         
         sdf = self.sdf_mlp(latent)
         return sdf
-    
-if __name__ == "__main__":
-    model = VoxelSDF()
-    points = torch.randn(10, 3) 
-    sdf_values = model(points)
-    print(sdf_values.shape)
