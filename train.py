@@ -97,8 +97,8 @@ class VoxelSDFTraining:
         torch.save(self.embeddings.state_dict(), f"embeddings_epoch_{epoch}.param")
 
     def load_model(self, epoch):
-        self.model.load_state_dict(f"voxel_sdf_epoch_{epoch}.param")
-        self.embeddings.load_state_dict(f"embeddings_epoch_{epoch}.param")
+        self.model.load_state_dict(torch.load(f"voxel_sdf_epoch_{epoch}.param"))
+        self.embeddings.load_state_dict(torch.load(f"embeddings_epoch_{epoch}.param"))
 
     def latest_epoch(self):
         if os.path.exists(os.path.join(self.result_dir, "losses.npy")):
