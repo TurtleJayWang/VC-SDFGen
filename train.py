@@ -20,6 +20,14 @@ class StepLearningRateSchedule:
         return self.initial * (self.factor ** (epoch // self.interval))
 
 
+import torch
+import torch.nn as nn
+import numpy as np
+from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import StepLR, ConstantLR
+from data.dataset import ShapeNetSDF
+from model.embedding import GridEmbedding
+
 class VoxelSDFTraining:
     def __init__(self, voxelsdf_model : VoxelSDF, dataset_path, result_dir, epochs, batch_size):
         self.epochs = epochs
@@ -31,16 +39,22 @@ class VoxelSDFTraining:
         self.latent_grid_size = self.model.voxel_grid_size
         self.latent_dim = self.model.latent_dim
         
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.is_available():
+            print("Using GPU")
+        else:
+            print("Using CPU")
+
         self.embeddings = GridEmbedding(len(self.dataset), self.latent_grid_size, self.latent_dim)
+        self.embeddings = self.embeddings.to(self.device)
 
         self.optimizer = torch.optim.Adam([
-            { "params": self.model.parameters(), "lr": 1e-4},
-            { "params": self.embeddings.parameters(), "lr": 1e-4}
+            { "params": self.model.parameters(), "lr": 1e-4 },
+            { "params": self.embeddings.parameters(), "lr": 1e-2 }
         ])
-        self.scheduler = StepLR(self.optimizer, step_size=10, gamma=0.9)
+        # self.scheduler = StepLR(self.optimizer, step_size=10, gamma=0.9)
 
         self.criterion = nn.L1Loss()
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
 
         self.result_dir = result_dir
@@ -92,8 +106,6 @@ class VoxelSDFTraining:
             if e % 100 == 0:
                 self.save_model(e)
                 np.save(os.path.join(self.result_dir, "losses.npy"), np.array(losses))
-            
-            self.scheduler.step()
 
             losses.append(epoch_loss)
             yield e, epoch_loss
