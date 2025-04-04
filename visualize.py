@@ -34,8 +34,7 @@ class Visualizer:
         # Split the points into 4 seperate splits to prevent running out of memory
         points_splits = points.split(250000)
 
-        embedding_start_index = embedding_index * (self.latent_grid_size + 1) ** 3
-        latent_code = self.latent_vecs(torch.arange(embedding_start_index, embedding_start_index + (self.latent_grid_size + 1) ** 3))
+        latent_code = self.latent_vecs(torch.tensor([embedding_index]))
         latent_code = latent_code.view(1, self.latent_dim, self.latent_grid_size + 1, self.latent_grid_size + 1, self.latent_grid_size + 1)
         latent_code = latent_code.to(self.device)
 
@@ -48,11 +47,11 @@ class Visualizer:
         sdfs = sdfs.numpy()
         return sdfs
 
-    def generate_sdf_objs(self, name):
+    def generate_sdf_objs(self, index):
         self.sdf_decoder.eval()
         with torch.no_grad():
             # Get the sdf values from model
-            sdfs = self.get_sdf_for_marching_cube(self.sdf_decoder)
+            sdfs = self.get_sdf_for_marching_cube(index)
             
             print(f"Volume range: {np.min(sdfs)} to {np.max(sdfs)}")
 
@@ -61,5 +60,5 @@ class Visualizer:
             
             # Output the result into mesh
             mesh = trimesh.Trimesh(vertices=verts, faces=faces, face_normals=normals)
-            with open(name, "w") as f:
+            with open(f"mesh_reconstruct_model_{index}.obj", "w") as f:
                 mesh.export(f, "obj")
