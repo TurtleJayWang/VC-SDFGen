@@ -3,11 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class VoxelSDF(nn.Module):
-    def __init__(self, latent_dim=32, voxel_grid_size=8, num_layers=1, hidden_dim=128):
+    def __init__(self, latent_dim=32, voxel_grid_size=8, num_layers=4, hidden_dim=128):
         super(VoxelSDF, self).__init__()
         
         self.sdf_mlp = nn.Sequential(
-            nn.Linear(latent_dim, hidden_dim),
+            nn.Linear(latent_dim + 3, hidden_dim),
             nn.ReLU(),
             *[nn.Sequential(
                 nn.Linear(hidden_dim, hidden_dim),
@@ -40,5 +40,6 @@ class VoxelSDF(nn.Module):
             align_corners=True
         ).view(n_models, n_points_per_model, self.latent_dim)
         
-        sdf = self.sdf_mlp(latent)
+        points = points.view(n_models, n_points_per_model, 3)
+        sdf = self.sdf_mlp(torch.cat([latent, points], dim=-1))
         return sdf
