@@ -16,7 +16,7 @@ class VoxelSDF(nn.Module):
             nn.Linear(hidden_dim, 1),
             nn.Tanh()
         )
-        
+
         self.voxel_grid_size = voxel_grid_size
         self.latent_dim = latent_dim
 
