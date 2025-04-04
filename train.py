@@ -20,14 +20,6 @@ class StepLearningRateSchedule:
         return self.initial * (self.factor ** (epoch // self.interval))
 
 
-import torch
-import torch.nn as nn
-import numpy as np
-from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import StepLR, ConstantLR
-from data.dataset import ShapeNetSDF
-from model.embedding import GridEmbedding
-
 class VoxelSDFTraining:
     def __init__(self, voxelsdf_model : VoxelSDF, dataset_path, result_dir, epochs, batch_size):
         self.epochs = epochs
