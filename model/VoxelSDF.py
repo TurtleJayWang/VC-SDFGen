@@ -10,7 +10,7 @@ class VoxelSDF(nn.Module):
             nn.Linear(latent_dim + 3, hidden_dim),
             nn.ReLU(),
             *[nn.Sequential(
-                nn.Linear(hidden_dim, hidden_dim),
+                ResidualBlock(hidden_dim),
                 nn.ReLU()
             ) for _ in range(num_layers)],
             nn.Linear(hidden_dim, 1),
@@ -43,3 +43,17 @@ class VoxelSDF(nn.Module):
         points = points.view(n_models, n_points_per_model, 3)
         sdf = self.sdf_mlp(torch.cat([latent, points], dim=-1))
         return sdf
+
+class ResidualBlock(nn.Module):
+    def __init__(self, dim):
+        super(ResidualBlock, self).__init__()
+        
+        self.layer1 = nn.Linear(dim, dim)
+        self.layer2 = nn.Linear(dim, dim)
+        self.activation = nn.ReLU()
+        
+    def forward(self, x):
+        residual = x
+        x = self.activation(self.layer1(x))
+        x = self.layer2(x)
+        return self.activation(x + residual)
